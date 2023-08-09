@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeMirror Example with File Management</title>
+  <!-- Include the CodeMirror library and theme -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/theme/dracula.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.js"></script>
+  <!-- Include CodeMirror modes (for syntax highlighting) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/javascript/javascript.min.js"></script>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Files</h2>
+    <ul id="file-list">
+      <?php
+        // List your files here dynamically using PHP
+        $files = scandir('path/to/files');
+        foreach ($files as $file) {
+          if ($file !== '.' && $file !== '..') {
+            echo '<li><a href="#" data-file="' . $file . '">' . $file . '</a></li>';
+          }
+        }
+      ?>
+    </ul>
+  </div>
+  
+  <div class="editor-container">
+    <h1>CodeMirror Example with File Management</h1>
+    
+    <select id="language-select">
+      <option value="htmlmixed">HTML</option>
+      <option value="css">CSS</option>
+      <option value="javascript">JavaScript</option>
+    </select>
+    
+    <textarea id="code-editor"></textarea>
+    
+    <button id="save-button">Save</button>
+  </div>
+  
+  <script>
+    var fileList = document.getElementById("file-list");
+    var codeEditor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+      lineNumbers: true,
+      mode: "htmlmixed",
+      theme: "dracula",
+      extraKeys: { "Ctrl-Space": "autocomplete" } // Enable autocompletion with Ctrl + Space
+    });
+    
+    fileList.addEventListener("click", function(event) {
+      event.preventDefault();
+      if (event.target.tagName === "A") {
+        var selectedFile = event.target.getAttribute("data-file");
+        // Fetch the file content using AJAX (replace with appropriate URL)
+        fetch('load_file.php?file=' + selectedFile)
+          .then(response => response.text())
+          .then(content => {
+            codeEditor.setValue(content);
+          })
+          .catch(error => {
+            console.error('Error loading file:', error);
+          });
+      }
+    });
+    
+    var languageSelect = document.getElementById("language-select");
+    languageSelect.addEventListener("change", function() {
+      var selectedMode = languageSelect.value;
+      codeEditor.setOption("mode", selectedMode);
+    });
+    
+    var saveButton = document.getElementById("save-button");
+    saveButton.addEventListener("click", function() {
+      var selectedFile = fileList.querySelector('a.active').getAttribute("data-file");
+      var updatedContent = codeEditor.getValue();
+      
+      // Send the updated content to the server for saving (replace with appropriate URL)
+      fetch('save_file.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'file=' + selectedFile + '&content=' + encodeURIComponent(updatedContent)
+      })
+      .then(response => response.text())
+      .then(message => {
+        console.log(message);
+      })
+      .catch(error => {
+        console.error('Error saving file:', error);
+      });
+    });
+  </script>
+  
+  <style>
+    .sidebar {
+      width: 20%;
+      float: left;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    
+    .editor-container {
+      width: 80%;
+      float: left;
+      padding: 20px;
+    }
+    
+    .active {
+      font-weight: bold;
+    }
+  </style>
+</body>
+</html>
