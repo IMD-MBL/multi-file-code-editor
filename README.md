@@ -1,2 +1,2 @@
-# multi-file-code-editor-
-Multi files code editor using CodeMirror.
+# multi-file-code-editor
+CodeMirror example with the ability to open, edit, and save files
